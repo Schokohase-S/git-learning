@@ -1,0 +1,59 @@
+import optparse
+from socket import *
+from threading import *
+
+screenlock=Semaphore(value=1) #semaphore = print 1 thread
+
+def connScan(targetH,targetP):
+        try: 
+                connSkt = socket(Af_INET,SOCK_STREAM)
+                connSkt.connect((targetH,targetP))
+                connSkt.send('hello \r\n')
+
+                results= connSkt.receive(100)
+                screenLock.aquire()
+                print("[+]")+str(targetP)+"/TCP open"  #str zum Umwandeln in String
+        except: #WENN der Port nicht offen ist
+                screenLock.aquire()
+                print("[-]")+str(targetP)+"/TCP not open"
+        finally: 
+                screenLock.release() #Screenlock aufheben um andere Threads damit benutzen zu können
+                connSkt.close()
+
+def portScan(targetH,targetPorts):
+        try:
+                targetIp = gethostbyname(targetH) #DNS request zum IP rausfinden
+        except:
+                print("cannot resolve name") +targetH 
+                return
+
+        try:
+                targetName = gethostbyaddr(targetIP)
+                print("Scan results for")+targetName[0]
+        except:
+                print("Scan results for")+targetIP
+        setdefaulttimeout(1)
+        for targetP in targetPorts:
+                t= thread(targetConnScan, args=(targetH, int(targetP)))
+                t.start()
+def Main():
+        parser = optparse.OptionParser('usage %prog -H <target host>'+\
+                '-p <target port>')
+        parser.add_option('-H',dest='targetH', type='string', \
+                help='specify target host')
+        parser.add_option('-p', dest='targetP',type='string', \
+                help='specify target port/s, seperate by a comma')     
+        (option, args)=parser.parse_args()
+        if (option.targetH == None) | (options.targetP == None):
+                print (parser.usage)
+                exit(0)
+        else:
+                targetH = options.targetH
+                targetPorts = str(options.targetP).split(',')
+        portscan(targetH, targetP)
+        
+if __name__ ==' __Main__':  
+        Main()
+  
+                
+                
